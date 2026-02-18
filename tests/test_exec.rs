@@ -16,7 +16,7 @@ macro_rules! assemble_and_exec {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nomos::cpu::Cpu;
+    use nomos::hart::Hart;
 
     #[rstest]
     #[case("add x3, x1, x2", 3, 10, 20, 30)]
@@ -49,11 +49,11 @@ mod tests {
         #[case] rs2: u32,
         #[case] expected: u32,
     ) {
-        let mut cpu = Cpu::new();
-        cpu.regs[1] = rs1;
-        cpu.regs[2] = rs2;
-        assemble_and_exec!(code, &mut cpu);
-        assert_eq!(cpu.regs[rd], expected);
+        let mut hart = Hart::new();
+        hart.regs[1] = rs1;
+        hart.regs[2] = rs2;
+        assemble_and_exec!(code, &mut hart);
+        assert_eq!(hart.regs[rd], expected);
     }
 
     #[rstest]
@@ -76,9 +76,9 @@ mod tests {
         #[case] rs1_val: u32,
         #[case] expected: u32,
     ) {
-        let mut cpu = Cpu::new();
-        cpu.regs[rs1] = rs1_val;
-        assemble_and_exec!(code, &mut cpu);
-        assert_eq!(cpu.regs[rd], expected);
+        let mut hart = Hart::new();
+        hart.regs[rs1] = rs1_val;
+        assemble_and_exec!(code, &mut hart);
+        assert_eq!(hart.regs[rd], expected);
     }
 }

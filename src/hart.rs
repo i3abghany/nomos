@@ -1,40 +1,43 @@
-use riscv_decode::decode;
+use riscv_decode::{decode, instruction_length};
 
 use crate::exec::Exec;
 
-const MEM_SIZE: usize = 1024 * 1024;
-pub struct Cpu {
+const MEM_SIZE: usize = 2 * 1024 * 1024;
+pub struct Hart {
     pub regs: [u32; 32],
     pub mem: Vec<u8>,
     pub pc: u32,
 }
 
-impl Cpu {
+impl Hart {
     pub fn new() -> Self {
-        Cpu {
+        Hart {
             regs: [0; 32],
             mem: vec![0; MEM_SIZE],
             pc: 0,
         }
     }
 
-    pub fn load_program(&mut self, program: Vec<u32>) {
-        self.mem[..program.len() * 4].copy_from_slice(unsafe {
-            std::slice::from_raw_parts(program.as_ptr() as *const u8, program.len() * 4)
-        });
+    pub fn load_program(&mut self, program: Vec<u8>) {
+        self.mem[..program.len()].copy_from_slice(&program);
     }
 
     pub fn step(&mut self) {
-        let inst = u32::from_le_bytes([
-            self.mem[self.pc as usize],
-            self.mem[self.pc as usize + 1],
-            self.mem[self.pc as usize + 2],
-            self.mem[self.pc as usize + 3],
-        ]);
+        let inst_bytes = &self.mem[self.pc as usize..self.pc as usize + 4];
+        let low_16_bit = u16::from_le_bytes([inst_bytes[0], inst_bytes[1]]);
+        let insn_length = instruction_length(low_16_bit);
 
-        let decoded = decode(inst).unwrap();
+        let decoded = if insn_length == 2 {
+            println!("Compressed instruction: 0x{:04x}", low_16_bit);
+            decode(low_16_bit as u32).unwrap()
+        } else {
+            let inst =
+                u32::from_le_bytes([inst_bytes[0], inst_bytes[1], inst_bytes[2], inst_bytes[3]]);
+            decode(inst).unwrap()
+        };
+
         decoded.exec(self).unwrap();
-        self.pc += 4;
+        self.pc += insn_length as u32;
     }
 
     fn abi_name(reg: usize) -> &'static str {

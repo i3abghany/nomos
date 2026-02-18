@@ -1,11 +1,14 @@
 use riscv_assembler::assembler::assemble;
 
-use nomos::cpu::Cpu;
+use nomos::hart::Hart;
+use nomos::elfutil::get_text_section;
 
 fn main() {
-    let mut cpu = Cpu::new();
-    let code = assemble("addi x1, x0, 42").unwrap().code;
-    cpu.load_program(code);
-    cpu.step();
-    cpu.log_state();
+    let code = get_text_section("bin").unwrap();
+    let mut hart = Hart::new();
+    hart.load_program(code);
+    for _ in 0..10 {
+        hart.step();
+        hart.log_state();
+    }
 }

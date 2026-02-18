@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+object = "0.38.1"
 riscv-decode = "0.2.3"
 riscv_assembler = "0.1.0"
 rstest = "0.26.1"
