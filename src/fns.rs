@@ -134,7 +134,7 @@ impl Exec for Instruction {
             Instruction::Sra(i) => exec_sra(rd!(i), rs1!(i), rs2!(i), r),
             Instruction::Slt(i) => exec_slt(rd!(i), rs1!(i), rs2!(i), r),
             Instruction::Sltu(i) => exec_sltu(rd!(i), rs1!(i), rs2!(i), r),
-            Instruction::Lui(i) => exec_lui(rd!(i), i.imm(), r),
+            Instruction::Lui(i) => exec_lui(rd!(i), imm!(i), r),
             Instruction::Addi(i) => exec_addi(rd!(i), rs1!(i), imm!(i), r),
             Instruction::Slti(i) => exec_slti(rd!(i), rs1!(i), imm!(i), r),
             Instruction::Sltiu(i) => exec_sltiu(rd!(i), rs1!(i), imm!(i), r),
