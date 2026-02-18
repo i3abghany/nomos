@@ -1,15 +1,11 @@
-use riscv_assembler::assembler::{assemble, AssemblyOutput};
-use riscv_decode::decode;
+use riscv_assembler::assembler::assemble;
 
-use nomos::fns::Exec;
+use nomos::cpu::Cpu;
 
 fn main() {
-    let mut regs: [u32; 32] = [0; 32];
-
-    let inst = assemble("addi x1, x0, 42").unwrap().code[0];
-    print!("Instruction: 0x{:08x}\n", inst);
-    let decoded = decode(inst).unwrap();
-    decoded.exec(&mut regs).unwrap();
-
-    assert_eq!(regs[1], 42);
+    let mut cpu = Cpu::new();
+    let code = assemble("addi x1, x0, 42").unwrap().code;
+    cpu.load_program(code);
+    cpu.step();
+    cpu.log_state();
 }
