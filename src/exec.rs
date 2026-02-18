@@ -1,6 +1,8 @@
 use riscv_decode::DecodingError;
 use riscv_decode::Instruction;
 
+use crate::cpu::Cpu;
+
 fn exec_add(rd: usize, rs1: usize, rs2: usize, regs: &mut [u32; 32]) {
     regs[rd] = regs[rs1].wrapping_add(regs[rs2]);
 }
@@ -96,7 +98,7 @@ fn exec_srai(rd: usize, rs1: usize, shamt: u32, regs: &mut [u32; 32]) {
 }
 
 pub trait Exec {
-    fn exec(&self, regs: &mut [u32; 32]) -> Result<(), DecodingError>;
+    fn exec(&self, regs: &mut Cpu) -> Result<(), DecodingError>;
 }
 
 macro_rules! rd {
@@ -122,7 +124,8 @@ macro_rules! imm {
 }
 
 impl Exec for Instruction {
-    fn exec(&self, r: &mut [u32; 32]) -> Result<(), DecodingError> {
+    fn exec(&self, r: &mut Cpu) -> Result<(), DecodingError> {
+        let r = &mut r.regs;
         match self {
             Instruction::Add(i) => exec_add(rd!(i), rs1!(i), rs2!(i), r),
             Instruction::Sub(i) => exec_sub(rd!(i), rs1!(i), rs2!(i), r),

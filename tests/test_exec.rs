@@ -52,7 +52,7 @@ mod tests {
         let mut cpu = Cpu::new();
         cpu.regs[1] = rs1;
         cpu.regs[2] = rs2;
-        assemble_and_exec!(code, &mut cpu.regs);
+        assemble_and_exec!(code, &mut cpu);
         assert_eq!(cpu.regs[rd], expected);
     }
 
@@ -78,7 +78,7 @@ mod tests {
     ) {
         let mut cpu = Cpu::new();
         cpu.regs[rs1] = rs1_val;
-        assemble_and_exec!(code, &mut cpu.regs);
+        assemble_and_exec!(code, &mut cpu);
         assert_eq!(cpu.regs[rd], expected);
     }
 }

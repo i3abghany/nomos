@@ -33,7 +33,7 @@ impl Cpu {
         ]);
 
         let decoded = decode(inst).unwrap();
-        decoded.exec(&mut self.regs).unwrap();
+        decoded.exec(self).unwrap();
         self.pc += 4;
     }
 
