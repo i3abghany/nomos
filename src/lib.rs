@@ -1,2 +1,2 @@
 pub mod cpu;
-pub mod fns;
+pub mod exec;

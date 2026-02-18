@@ -1,16 +1,12 @@
-use riscv_assembler::assembler::{assemble, AssemblyOutput};
+use riscv_assembler::assembler::assemble;
 use riscv_decode::decode;
-use riscv_decode::types::*;
-use riscv_decode::DecodingError;
-use riscv_decode::Instruction;
 use rstest::rstest;
 
-use nomos::fns::Exec;
+use nomos::exec::Exec;
 
 #[macro_export]
 macro_rules! assemble_and_exec {
     ($code:expr, $regs:expr) => {{
-        let inst = $code;
         let inst = assemble($code).unwrap().code[0];
         let decoded = decode(inst).unwrap();
         decoded.exec($regs).unwrap();
@@ -20,6 +16,7 @@ macro_rules! assemble_and_exec {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use nomos::cpu::Cpu;
 
     #[rstest]
     #[case("add x3, x1, x2", 3, 10, 20, 30)]
@@ -52,37 +49,36 @@ mod tests {
         #[case] rs2: u32,
         #[case] expected: u32,
     ) {
-        let mut regs: [u32; 32] = [0; 32];
-        regs[1] = rs1;
-        regs[2] = rs2;
-        assemble_and_exec!(code, &mut regs);
-        assert_eq!(regs[rd], expected);
+        let mut cpu = Cpu::new();
+        cpu.regs[1] = rs1;
+        cpu.regs[2] = rs2;
+        assemble_and_exec!(code, &mut cpu.regs);
+        assert_eq!(cpu.regs[rd], expected);
     }
 
     #[rstest]
-    #[case("addi x3, x2, 42", 3, 2, 10, 42, 52)]
-    #[case("addi x4, x3, -1", 4, 3, 0, 0xFFFFFFFF, 0xFFFFFFFF)]
-    #[case("addi x5, x4, -1", 5, 4, 0, 0xFFFFFFFF, 0xFFFFFFFF)]
-    #[case("addi x6, x12, 1", 6, 12, 0xFFFFFFFF, 1, 0)]
-    #[case("addi x7, x13, -50", 7, 13, 100, -50i32 as u32, 50)]
-    #[case("addi x8, x14, 0", 8, 14, 12345, 0, 12345)]
-    #[case("ori x9, x15, 0xFF", 9, 15, 0x12345678, 0xFF, 0x123456FF)]
-    #[case("slti x15, x21, 100", 15, 21, 50, 100, 1)]
-    #[case("slti x16, x22, 100", 16, 22, 150, 100, 0)]
-    #[case("sltiu x17, x23, 100", 17, 23, 50, 100, 1)]
-    #[case("sltiu x18, x24, 100", 18, 24, 150, 100, 0)]
-    #[case("sltiu x19, x25, 100", 19, 25, 0xFFFFFFFF, 100, 0)]
+    #[case("addi x3, x2, 42", 3, 2, 10, 52)]
+    #[case("addi x4, x3, -1", 4, 3, 0, 0xFFFFFFFF)]
+    #[case("addi x5, x4, -1", 5, 4, 0xFFFFFFFF, 0xFFFFFFFE)]
+    #[case("addi x6, x12, 1", 6, 12, 0xFFFFFFFF, 0)]
+    #[case("addi x7, x13, -50", 7, 13, 100, 50)]
+    #[case("addi x8, x14, 0", 8, 14, 12345, 12345)]
+    #[case("ori x9, x15, 0xFF", 9, 15, 0x12345678, 0x123456FF)]
+    #[case("slti x15, x21, 100", 15, 21, 50, 1)]
+    #[case("slti x16, x22, 100", 16, 22, 150, 0)]
+    #[case("sltiu x17, x23, 100", 17, 23, 50, 1)]
+    #[case("sltiu x18, x24, 100", 18, 24, 150, 0)]
+    #[case("sltiu x19, x25, 100", 19, 25, 0xFFFFFFFF, 0)]
     fn test_exec_itype(
         #[case] code: &str,
         #[case] rd: usize,
         #[case] rs1: usize,
         #[case] rs1_val: u32,
-        #[case] imm: u32,
         #[case] expected: u32,
     ) {
-        let mut regs: [u32; 32] = [0; 32];
-        regs[rs1] = rs1_val;
-        assemble_and_exec!(code, &mut regs);
-        assert_eq!(regs[rd], expected);
+        let mut cpu = Cpu::new();
+        cpu.regs[rs1] = rs1_val;
+        assemble_and_exec!(code, &mut cpu.regs);
+        assert_eq!(cpu.regs[rd], expected);
     }
 }

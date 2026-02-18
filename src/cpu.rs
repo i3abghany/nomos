@@ -1,6 +1,6 @@
 use riscv_decode::decode;
 
-use crate::fns::Exec;
+use crate::exec::Exec;
 
 const MEM_SIZE: usize = 1024 * 1024;
 pub struct Cpu {
